@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Define the database schema type
+type ContactSubmission = {
+  id?: number;
+  name: string;
+  email: string;
+  message: string;
+  created_at?: string;
+};
+
+type Database = {
+  public: {
+    Tables: {
+      contact_submissions: {
+        Row: ContactSubmission;
+        Insert: Omit<ContactSubmission, 'id'>;
+        Update: Partial<Omit<ContactSubmission, 'id'>>;
+      };
+    };
+  };
+};
+
 // Don't initialize at module level - do it in the handler
-let supabase: ReturnType<typeof createClient> | null = null;
+let supabase: ReturnType<typeof createClient<Database>> | null = null;
 
 function getSupabaseClient() {
   if (!supabase) {
@@ -13,7 +34,7 @@ function getSupabaseClient() {
       throw new Error('Missing Supabase environment variables');
     }
 
-    supabase = createClient(supabaseUrl, supabaseKey);
+    supabase = createClient<Database>(supabaseUrl, supabaseKey);
   }
   return supabase;
 }
